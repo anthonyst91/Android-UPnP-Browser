@@ -10,7 +10,7 @@ Usage
 
 UPnPHelper is the main entry. You only need to provide it your own adapter (which should extends UPnPDeviceAdapter)
 
-'''android
+```android
 	UPnPDeviceAdapter<MyViewHolder> adapter = new UPnPDeviceAdapter<MyViewHolder>(this){
 		@NonNull
 		@Override
@@ -32,27 +32,27 @@ UPnPHelper is the main entry. You only need to provide it your own adapter (whic
 	
 	UPnPHelper helper = new UPnPHelper(adapter);
 	helper.startObserver();
-'''
+```
 
 The UPnPHelper will open a socket and wait for the UPnPDevices. Each time a new UPnPDevice is found, it will added to your adapter. If the device found already exists in the adapter, it will automatically updated if its parameters have changed.
 
 You can change the default UPnP socket timeout (the default value is set to 60 seconds)
 
-'''android
+```android
 	UPnPHelper helper = new UPnPHelper(adapter, 10000); // 10 secondes
 	helper.startObserver();
-'''
+```
 
 You can stop the observation process at any moment by calling destroyObserver.
 
-'''android
+```android
     helper.destroyObserver();
-'''
+```
 
 
 You can override UPnPHelper in order to execute your own code in the following callbacks:
 
-'''android
+```android
 	/**
 	 * Called when the first device has been found, before adding it to the adapter.
 	 */
@@ -72,7 +72,7 @@ You can override UPnPHelper in order to execute your own code in the following c
 	 * Called on UPnP observation error.
 	 */
     void onUPnPObserverError();
-'''
+```
 
 
 Applications that use the lib
