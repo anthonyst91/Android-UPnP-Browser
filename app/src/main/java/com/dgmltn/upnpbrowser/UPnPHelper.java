@@ -81,12 +81,14 @@ public class UPnPHelper {
 
     @Subscribe
     public void onUPnPObserveEndedEvent(@NonNull UPnPObserveEndedEvent event) {
-        //ignore
+        Log.i(TAG, "onUPnPObserveEndedEvent");
+        destroyObserver();
     }
 
     @Subscribe
     public void onUPnPErrorEvent(@NonNull UPnPErrorEvent event) {
-        //ignore
+        destroyObserver();
+        Log.i(TAG, "onUPnPErrorEvent.errorCode: " + event.getErrorCode());
     }
 
     /////////////////////
