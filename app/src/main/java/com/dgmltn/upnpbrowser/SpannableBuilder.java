@@ -18,17 +18,17 @@ package com.dgmltn.upnpbrowser;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
-import android.support.annotation.DrawableRes;
 import android.text.SpannableStringBuilder;
 import android.text.style.CharacterStyle;
 import android.text.style.ImageSpan;
 
 // Much more usable SpannableStringBuilder
-public class SpannableBuilder {
+class SpannableBuilder {
+
 	private SpannableStringBuilder mBuilder;
 	private Context mContext;
 
-	public SpannableBuilder(Context context) {
+	SpannableBuilder(Context context) {
 		mBuilder = new SpannableStringBuilder();
 		mContext = context;
 	}
@@ -52,7 +52,7 @@ public class SpannableBuilder {
 		}
 	}
 
-	public void append(@DrawableRes int drawableResId) {
+	public void append(int drawableResId) {
 		Drawable d = mContext.getResources().getDrawable(drawableResId);
 		d.setBounds(0, 0, d.getIntrinsicWidth(), d.getIntrinsicHeight());
 		append(" ", new ImageSpan(d, ImageSpan.ALIGN_BASELINE));

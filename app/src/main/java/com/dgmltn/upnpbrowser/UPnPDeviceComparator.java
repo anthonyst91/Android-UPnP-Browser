@@ -21,110 +21,121 @@ import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.Comparator;
 
-import android.location.Location;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import io.reactivex.annotations.NonNull;
+import io.reactivex.annotations.Nullable;
 
-public class UPnPDeviceComparator implements Comparator<UPnPDevice> {
-	@Override
-	public int compare(UPnPDevice lhs, UPnPDevice rhs) {
-		// Handle null objects
-		int compare = compareNull(lhs, rhs);
-		if (compare == 0 && lhs == null) {
-			return compare;
-		}
+class UPnPDeviceComparator implements Comparator<UPnPDevice> {
 
-		URL mine = lhs.getLocation();
-		URL hers = rhs.getLocation();
-		compare = compareNull(mine, hers);
-		if (compare == 0 && lhs == null) {
-			return compare;
-		}
+    @Override
+    public int compare(@Nullable UPnPDevice lhs,
+                       @Nullable UPnPDevice rhs) {
+        // Handle null objects
+        int compare = compareNull(lhs, rhs);
+        if (compare == 0 && lhs == null) {
+            return compare;
+        }
 
-		// Compare ip addresses
-		compare = compareInetAddresses(mine, hers);
-		if (compare != 0) {
-			return compare;
-		}
+        URL mine = lhs.getLocation();
+        URL hers = rhs.getLocation();
+        compare = compareNull(mine, hers);
+        //noinspection ConstantConditions
+        if (compare == 0 && lhs == null) {
+            return compare;
+        }
 
-		// Compare ports
-		compare = mine.getPort() - hers.getPort();
-		if (compare != 0) {
-			return compare;
-		}
+        // Compare ip addresses
+        compare = compareInetAddresses(mine, hers);
+        if (compare != 0) {
+            return compare;
+        }
 
-		// String compare paths
-		return mine.getPath().compareTo(hers.getPath());
-	}
+        // Compare ports
+        if (mine == null) {
+            return 1;
+        }
+        if (hers == null) {
+            return -1;
+        }
+        compare = mine.getPort() - hers.getPort();
+        if (compare != 0) {
+            return compare;
+        }
 
-	///////////////////////////////////////////////////////////////////////////
-	// Null
-	// a "null" object is less than a populated one
-	// If they're both null or both non-null, then they're equal
-	///////////////////////////////////////////////////////////////////////////
+        // String compare paths
+        return mine.getPath().compareTo(hers.getPath());
+    }
 
-	public int compareNull(@Nullable Object lhs, @Nullable Object rhs) {
-		if (lhs == null) {
-			return rhs == null ? 0 : -1;
-		}
-		else if (rhs == null) {
-			return 1;
-		}
-		return 0;
-	}
+    ///////////////////////////////////////////////////////////////////////////
+    // Null
+    // a "null" object is less than a populated one
+    // If they're both null or both non-null, then they're equal
+    ///////////////////////////////////////////////////////////////////////////
 
-	///////////////////////////////////////////////////////////////////////////
-	// IP Address
-	///////////////////////////////////////////////////////////////////////////
+    private int compareNull(@Nullable Object lhs,
+                            @Nullable Object rhs) {
+        if (lhs == null) {
+            return rhs == null ? 0 : -1;
+        } else if (rhs == null) {
+            return 1;
+        }
+        return 0;
+    }
 
-	public int compareInetAddresses(@NonNull URL lhs, @NonNull URL rhs) {
-		InetAddress mine = null;
-		InetAddress hers = null;
-		try {
-			mine = InetAddress.getByName(lhs.getHost());
-		}
-		catch (UnknownHostException e) {
-			e.printStackTrace();
-		}
-		try {
-			hers = InetAddress.getByName(rhs.getHost());
-		}
-		catch (UnknownHostException e) {
-			e.printStackTrace();
-		}
+    ///////////////////////////////////////////////////////////////////////////
+    // IP Address
+    ///////////////////////////////////////////////////////////////////////////
 
-		int compare = compareNull(mine, hers);
-		if (compare == 0 && mine == null) {
-			return 0;
-		}
+    private int compareInetAddresses(@NonNull URL lhs, @NonNull URL rhs) {
+        InetAddress mine = null;
+        InetAddress hers = null;
+        try {
+            mine = InetAddress.getByName(lhs.getHost());
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
+        try {
+            hers = InetAddress.getByName(rhs.getHost());
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
 
-		return compareInetAddress(mine, hers);
-	}
+        int compare = compareNull(mine, hers);
+        if (compare == 0 && mine == null) {
+            return 0;
+        }
 
-	public int compareInetAddress(@NonNull InetAddress adr1, @NonNull InetAddress adr2) {
-		byte[] ba1 = adr1.getAddress();
-		byte[] ba2 = adr2.getAddress();
+        return compareInetAddress(mine, hers);
+    }
 
-		// general ordering: ipv4 before ipv6
-		if(ba1.length < ba2.length) return -1;
-		if(ba1.length > ba2.length) return 1;
+    private int compareInetAddress(@NonNull InetAddress adr1, @NonNull InetAddress adr2) {
+        byte[] ba1 = adr1.getAddress();
+        byte[] ba2 = adr2.getAddress();
 
-		// we have 2 ips of the same type, so we have to compare each byte
-		for(int i = 0; i < ba1.length; i++) {
-			int b1 = unsignedByteToInt(ba1[i]);
-			int b2 = unsignedByteToInt(ba2[i]);
-			if(b1 == b2)
-				continue;
-			if(b1 < b2)
-				return -1;
-			else
-				return 1;
-		}
-		return 0;
-	}
+        // general ordering: ipv4 before ipv6
+        if(ba1.length < ba2.length) {
+            return -1;
+        }
+        if(ba1.length > ba2.length) {
+            return 1;
+        }
 
-	private int unsignedByteToInt(byte b) {
-		return (int) b & 0xFF;
-	}
+        // we have 2 ips of the same type, so we have to compare each byte
+        for(int i = 0; i < ba1.length; i++) {
+            int b1 = unsignedByteToInt(ba1[i]);
+            int b2 = unsignedByteToInt(ba2[i]);
+            if(b1 == b2) {
+                continue;
+            }
+            if(b1 < b2) {
+                return -1;
+            } else {
+                return 1;
+            }
+        }
+        return 0;
+    }
 
+    private int unsignedByteToInt(byte b) {
+        return (int) b & 0xFF;
+    }
 }

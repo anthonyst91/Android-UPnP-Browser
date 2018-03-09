@@ -29,190 +29,189 @@ import java.util.regex.Pattern;
 
 import android.util.Log;
 
-import rx.Observable;
-import rx.Subscriber;
+import com.dgmltn.upnpbrowser.event.UPnPDeviceEvent;
+import com.dgmltn.upnpbrowser.event.UPnPErrorEvent;
+import com.dgmltn.upnpbrowser.event.UPnPObserveEndedEvent;
+
+import org.greenrobot.eventbus.EventBus;
+
+import static com.dgmltn.upnpbrowser.event.UPnPErrorEvent.ERROR_NULL_SOCKET;
 
 /**
  * Based on:
  * https://github.com/heb-dtc/SSDPDiscovery/blob/master/src/main/java/com/flo/upnpdevicedetector/UPnPDeviceFinder.java
  */
-public class UPnPDeviceFinder {
+class UPnPDeviceFinder {
 
-	private static String TAG = UPnPDeviceFinder.class.getName();
+    private static final String TAG = "UPnPDeviceFinder";
 
-	public static final String MULTICAST_ADDRESS = "239.255.255.250";
+    private static final String MULTICAST_ADDRESS = "239.255.255.250";
+    private static final int PORT = 1900;
 
-	public static final int PORT = 1900;
+    private static final int MAX_REPLY_TIME = 60;
+    private static final int MSG_TIMEOUT = MAX_REPLY_TIME * 1000 + 1000;
 
-	public static final int MAX_REPLY_TIME = 60;
-	public static final int MSG_TIMEOUT = MAX_REPLY_TIME * 1000 + 1000;
+    // From Apache InetAddressUtils
+    // https://hc.apache.org/httpcomponents-client-ga/httpclient/apidocs/org/apache/http/conn/util/InetAddressUtils.html
+    private static final Pattern IPV4_PATTERN =
+            Pattern.compile("^(25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)(\\.(25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)){3}$");
 
-	private InetAddress mInetDeviceAdr;
+    private static final String NEWLINE = "\r\n";
 
-	private UPnPSocket mSock;
+    private UPnPSocket mSock;
 
-	public UPnPDeviceFinder() {
-		this(true);
-	}
+    UPnPDeviceFinder() {
+        this(true);
+    }
 
-	public UPnPDeviceFinder(boolean IPV4) {
-		mInetDeviceAdr = getDeviceLocalIP(IPV4);
-		Log.e(TAG, "IP is: " + mInetDeviceAdr);
+    private UPnPDeviceFinder(boolean IPV4) {
+        InetAddress inetAddress = getDeviceLocalIP(IPV4);
+        Log.d(TAG, "inet device address is: " + inetAddress);
 
-		try {
-			mSock = new UPnPSocket(mInetDeviceAdr);
-		}
-		catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
+        try {
+            mSock = new UPnPSocket(inetAddress);
+        } catch (IOException e) {
+            Log.w(TAG, "new UPnPSocket(): IOException: ", e);
+        }
+    }
 
-	public Observable<UPnPDevice> observe() {
-		return Observable.create(new Observable.OnSubscribe<UPnPDevice>() {
-			@Override
-			public void call(Subscriber<? super UPnPDevice> subscriber) {
-				if (mSock == null) {
-					subscriber.onError(new Exception("socket is null"));
-					return;
-				}
+    boolean observe() {
+        if (mSock == null) {
+            EventBus.getDefault().post(new UPnPErrorEvent(ERROR_NULL_SOCKET));
+        }
 
-				try {
-					// Broadcast SSDP search messages
-					mSock.sendMulticastMsg();
+        try {
+            // Broadcast SSDP search messages
+            mSock.sendMulticastMsg();
 
-					// Listen to responses from network until the socket timeout
-					while (true) {
-						Log.e(TAG, "wait for dev. response");
-						DatagramPacket dp = mSock.receiveMulticastMsg();
-						String receivedString = new String(dp.getData());
-						receivedString = receivedString.substring(0, dp.getLength());
-						Log.e(TAG, "found dev: " + receivedString);
-						UPnPDevice device = UPnPDevice.getInstance(receivedString);
-						if (device != null) {
-							subscriber.onNext(device);
-						}
-					}
-				}
-				catch (IOException e) {
-					//sock timeout will get us out of the loop
-					Log.e(TAG, "time out");
-					mSock.close();
-					subscriber.onCompleted();
-				}
-			}
-		});
+            // Listen to responses from network until the socket timeout
+            // noinspection InfiniteLoopStatement
+            while (true) {
+                Log.i(TAG, "UPnP.observe...");
 
-	}
+                DatagramPacket dp = mSock.receiveMulticastMsg();
+                String receivedString = new String(dp.getData());
 
-	////////////////////////////////////////////////////////////////////////////////
-	// UPnPSocket
-	////////////////////////////////////////////////////////////////////////////////
+                receivedString = receivedString.substring(0, dp.getLength());
+                Log.i(TAG, "UPnP.observe.device found: " + receivedString);
 
-	private static class UPnPSocket {
-		private static String TAG = UPnPSocket.class.getName();
+                UPnPDevice device = UPnPDevice.parse(receivedString);
 
-		private SocketAddress mMulticastGroup;
-		private MulticastSocket mMultiSocket;
+                if (device != null) {
+                    EventBus.getDefault().post(new UPnPDeviceEvent(device));
+                }
+            }
 
-		UPnPSocket(InetAddress deviceIp) throws IOException {
-			Log.e(TAG, "UPnPSocket");
+        } catch (IOException e) {
+            //sock timeout will get us out of the loop
+            Log.i(TAG, "observe.timed out: " + e.getMessage());
+            mSock.close();
+            EventBus.getDefault().post(new UPnPObserveEndedEvent());
+        }
+        return true;
+    }
 
-			mMulticastGroup = new InetSocketAddress(MULTICAST_ADDRESS, PORT);
-			mMultiSocket = new MulticastSocket(new InetSocketAddress(deviceIp, 0));
+    ////////////////////////////////////////////////////////////////////////////////
+    // UPnPSocket
+    ////////////////////////////////////////////////////////////////////////////////
 
-			mMultiSocket.setSoTimeout(MSG_TIMEOUT);
-		}
+    private static class UPnPSocket {
 
-		public void sendMulticastMsg() throws IOException {
-			String ssdpMsg = buildSSDPSearchString();
+        private static final String TAG = "UPnPSocket";
 
-			Log.e(TAG, "sendMulticastMsg: " + ssdpMsg);
+        private SocketAddress mMulticastGroup;
+        private MulticastSocket mMultiSocket;
 
-			DatagramPacket dp = new DatagramPacket(ssdpMsg.getBytes(), ssdpMsg.length(), mMulticastGroup);
-			mMultiSocket.send(dp);
-		}
+        UPnPSocket(InetAddress deviceIp) throws IOException {
+            Log.e(TAG, "UPnPSocket");
 
-		public DatagramPacket receiveMulticastMsg() throws IOException {
-			byte[] buf = new byte[2048];
-			DatagramPacket dp = new DatagramPacket(buf, buf.length);
+            mMulticastGroup = new InetSocketAddress(MULTICAST_ADDRESS, PORT);
+            mMultiSocket = new MulticastSocket(new InetSocketAddress(deviceIp, 0));
 
-			mMultiSocket.receive(dp);
+            mMultiSocket.setSoTimeout(MSG_TIMEOUT);
+        }
 
-			return dp;
-		}
+        void sendMulticastMsg() throws IOException {
+            String ssdpMsg = buildSSDPSearchString();
 
-		/**
-		 * Closing the Socket.
-		 */
-		public void close() {
-			if (mMultiSocket != null) {
-				mMultiSocket.close();
-			}
-		}
-	}
+            Log.e(TAG, "sendMulticastMsg: " + ssdpMsg);
 
-	////////////////////////////////////////////////////////////////////////////////
-	// Utils
-	////////////////////////////////////////////////////////////////////////////////
+            DatagramPacket dp = new DatagramPacket(ssdpMsg.getBytes(), ssdpMsg.length(), mMulticastGroup);
+            mMultiSocket.send(dp);
+        }
 
-	public static final String NEWLINE = "\r\n";
+        DatagramPacket receiveMulticastMsg() throws IOException {
+            byte[] buf = new byte[2048];
+            DatagramPacket dp = new DatagramPacket(buf, buf.length);
 
-	private static String buildSSDPSearchString() {
-		StringBuilder content = new StringBuilder();
+            mMultiSocket.receive(dp);
 
-		content.append("M-SEARCH * HTTP/1.1").append(NEWLINE);
-		content.append("Host: " + MULTICAST_ADDRESS + ":" + PORT).append(NEWLINE);
-		content.append("Man:\"ssdp:discover\"").append(NEWLINE);
-		content.append("MX: " + MAX_REPLY_TIME).append(NEWLINE);
-		content.append("ST: upnp:rootdevice").append(NEWLINE);
-		content.append(NEWLINE);
+            return dp;
+        }
 
-		Log.e(TAG, content.toString());
+        /**
+         * Closing the Socket.
+         */
+        public void close() {
+            if (mMultiSocket != null) {
+                mMultiSocket.close();
+            }
+        }
+    }
 
-		return content.toString();
-	}
+    ////////////////////////////////////////////////////////////////////////////////
+    // Utils
+    ////////////////////////////////////////////////////////////////////////////////
 
-	private static InetAddress getDeviceLocalIP(boolean useIPv4) {
-		Log.e(TAG, "getDeviceLocalIP");
+    private static String buildSSDPSearchString() {
+        StringBuilder content = new StringBuilder();
 
-		try {
-			List<NetworkInterface> interfaces = Collections.list(NetworkInterface.getNetworkInterfaces());
-			for (NetworkInterface intf : interfaces) {
-				List<InetAddress> addrs = Collections.list(intf.getInetAddresses());
-				for (InetAddress addr : addrs) {
-					if (!addr.isLoopbackAddress()) {
-						Log.e(TAG, "IP from inet is: " + addr);
-						String sAddr = addr.getHostAddress().toUpperCase();
-						boolean isIPv4 = isIPv4Address(sAddr);
-						if (useIPv4) {
-							if (isIPv4) {
-								Log.e(TAG, "IP v4");
-								return addr;
-							}
-						}
-						else {
-							if (!isIPv4) {
-								Log.e(TAG, "IP v6");
-								//int delim = sAddr.indexOf('%'); // drop ip6 port suffix
-								//return delim<0 ? sAddr : sAddr.substring(0, delim);
-								return addr;
-							}
-						}
-					}
-				}
-			}
-		}
-		catch (Exception ex) {
-		} // for now eat exceptions
-		return null;
-	}
+        content.append("M-SEARCH * HTTP/1.1").append(NEWLINE);
+        content.append("Host: " + MULTICAST_ADDRESS + ":" + PORT).append(NEWLINE);
+        content.append("Man:\"ssdp:discover\"").append(NEWLINE);
+        content.append("MX: " + MAX_REPLY_TIME).append(NEWLINE);
+        content.append("ST: upnp:rootdevice").append(NEWLINE);
+        content.append(NEWLINE);
 
-	// From Apache InetAddressUtils
-	// https://hc.apache.org/httpcomponents-client-ga/httpclient/apidocs/org/apache/http/conn/util/InetAddressUtils.html
-	private static final Pattern IPV4_PATTERN =
-		Pattern.compile("^(25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)(\\.(25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)){3}$");
+        Log.e(TAG, content.toString());
 
-	private static final boolean isIPv4Address(final String input) {
-		return IPV4_PATTERN.matcher(input).matches();
-	}
+        return content.toString();
+    }
+
+    private static InetAddress getDeviceLocalIP(boolean useIPv4) {
+        try {
+            List<NetworkInterface> interfaces = Collections.list(NetworkInterface.getNetworkInterfaces());
+            for (NetworkInterface intf : interfaces) {
+                List<InetAddress> addrs = Collections.list(intf.getInetAddresses());
+                for (InetAddress addr : addrs) {
+                    if (!addr.isLoopbackAddress()) {
+                        Log.e(TAG, "IP from inet is: " + addr);
+                        String sAddr = addr.getHostAddress().toUpperCase();
+                        boolean isIPv4 = isIPv4Address(sAddr);
+                        if (useIPv4) {
+                            if (isIPv4) {
+                                Log.i(TAG, "getDeviceLocalIP: IPv4");
+                                return addr;
+                            }
+                        }
+                        else {
+                            if (!isIPv4) {
+                                Log.i(TAG, "getDeviceLocalIP: IPv6");
+                                //int delim = sAddr.indexOf('%'); // drop ip6 port suffix
+                                //return delim<0 ? sAddr : sAddr.substring(0, delim);
+                                return addr;
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            Log.w(TAG, "getDeviceLocalIP.Exception: ", e);
+        }
+        return null;
+    }
+
+    private static boolean isIPv4Address(final String input) {
+        return IPV4_PATTERN.matcher(input).matches();
+    }
 }

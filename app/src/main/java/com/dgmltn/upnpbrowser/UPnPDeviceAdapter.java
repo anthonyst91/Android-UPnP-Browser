@@ -16,167 +16,129 @@
 
 package com.dgmltn.upnpbrowser;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-
 import android.content.Context;
+import android.support.annotation.Dimension;
+import android.support.annotation.DrawableRes;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.text.method.LinkMovementMethod;
-import android.text.style.URLSpan;
 import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
-import butterknife.Bind;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
-public class UPnPDeviceAdapter extends RecyclerView.Adapter<UPnPDeviceAdapter.ViewHolder> {
+public abstract class UPnPDeviceAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
-	public interface ItemClickListener {
-		public void onClick(UPnPDevice item, int position);
-	}
+    private Comparator<UPnPDevice> mComparator = new UPnPDeviceComparator();
 
-	private Comparator<UPnPDevice> mComparator = new UPnPDeviceComparator();
+    @NonNull
+    private LayoutInflater mInflater;
 
-	private LayoutInflater inflater;
-	private Picasso picasso;
-	private ArrayList<UPnPDevice> mItems;
-	private ItemClickListener mListener;
+    @NonNull
+    private Picasso mPicasso;
 
-	public UPnPDeviceAdapter(Context context) {
-		super();
-		inflater = LayoutInflater.from(context);
-		picasso = Picasso.with(context);
-		picasso.setIndicatorsEnabled(false);
-		mItems = new ArrayList<>();
-		setHasStableIds(false);
-	}
+    @NonNull
+    private ArrayList<UPnPDevice> mItems;
 
-	public void setItemClickListener(ItemClickListener listener) {
-		mListener = listener;
-	}
+    public UPnPDeviceAdapter(Context context) {
+        mItems = new ArrayList<>();
 
-	@Override
-	public int getItemCount() {
-		return mItems.size();
-	}
+        mInflater = LayoutInflater.from(context);
+        mPicasso = Picasso.get();
+        mPicasso.setIndicatorsEnabled(false);
 
-	public UPnPDevice getItem(int position) {
-		return mItems.get(position);
-	}
+        setHasStableIds(false);
+    }
 
-	public void clear() {
-		int count = mItems.size();
-		mItems.clear();
-		notifyItemRangeRemoved(0, count);
-	}
+    @NonNull
+    public LayoutInflater getInflater() {
+        return mInflater;
+    }
 
-	public void add(UPnPDevice item) {
-		int index = Collections.binarySearch(mItems, item, mComparator);
-		if (index < 0) {
-			int position = -index - 1;
-			mItems.add(position, item);
-			notifyItemInserted(position);
-		}
-		else {
-			mItems.set(index, item);
-			notifyItemChanged(index);
-		}
-	}
+    @Override
+    public int getItemCount() {
+        return mItems.size();
+    }
 
-	@Override
-	public ViewHolder onCreateViewHolder(ViewGroup parent, int position) {
-		return new ViewHolder(inflater.inflate(R.layout.row_upnp_device, parent, false));
-	}
+    @NonNull
+    public UPnPDevice getItem(int position) {
+        return mItems.get(position);
+    }
 
-	@Override
-	public void onBindViewHolder(ViewHolder holder, int position) {
-		UPnPDevice item = getItem(position);
-		if (holder.friendlyName != null) {
-			String friendlyName = item.getScrubbedFriendlyName();
-			if (TextUtils.isEmpty(friendlyName)) {
-				friendlyName = "[unnamed]";
-			}
-			holder.friendlyName.setText(friendlyName);
-		}
-		if (holder.location != null) {
-			String loc = item.getLocation().toExternalForm()
-				// Uncomment to obscure actual ip addresses for screenshots
-				// .replaceAll("[0-9]+\\.[0-9]+\\.[0-9]+", "192.258.1")
-				;
-			linkify(holder.location, null, loc);
-		}
-		if (holder.icon != null) {
-			if (!TextUtils.isEmpty(item.getIconUrl())) {
-				int iconSize = (int) holder.icon.getContext().getResources().getDimension(R.dimen.icon_size);
-				picasso.load(item.getIconUrl())
-					.error(R.drawable.ic_server_network)
-					.resize(iconSize, iconSize)
-					.centerInside()
-					.into(holder.icon);
-			}
-			else {
-				holder.icon.setImageResource(R.drawable.ic_server_network);
-			}
-		}
-	}
+    public void clear() {
+        int count = mItems.size();
+        mItems.clear();
+        notifyItemRangeRemoved(0, count);
+    }
 
-	private void linkify(TextView view, CharSequence str, String url) {
-		if (TextUtils.isEmpty(str) && TextUtils.isEmpty(url)) {
-			view.setVisibility(View.GONE);
-			return;
-		}
+    public void addItem(@NonNull UPnPDevice item) {
+        int index = Collections.binarySearch(mItems, item, mComparator);
+        if (index < 0) {
+            int position = -index - 1;
+            mItems.add(position, item);
+            notifyItemInserted(position);
+        } else {
+            mItems.set(index, item);
+            notifyItemChanged(index);
+        }
+    }
 
-		view.setVisibility(View.VISIBLE);
-		if (TextUtils.isEmpty(url)) {
-			view.setText(str);
-			return;
-		}
+    public void setName(@NonNull TextView textView,
+                        @NonNull UPnPDevice device) {
+        String friendlyName = device.getScrubbedFriendlyName();
+        if (TextUtils.isEmpty(friendlyName)) {
+            friendlyName = "[unnamed]";
+        }
+        textView.setText(friendlyName);
+    }
 
-		if (TextUtils.isEmpty(str)) {
-			str = url;
-		}
+    public void setLocation(@NonNull TextView textView,
+                            @NonNull UPnPDevice device) {
+        String loc = device.getLocation().toExternalForm()
+                // Uncomment to obscure actual ip addresses for screenshots
+                // .replaceAll("[0-9]+\\.[0-9]+\\.[0-9]+", "192.258.1")
+                ;
+        linkify(textView, loc);
+    }
 
-		SpannableBuilder builder = new SpannableBuilder(view.getContext());
-		builder.append(str, new URLSpan(url));
+    private void linkify(@NonNull TextView textView,
+                         @Nullable String url) {
+        if (TextUtils.isEmpty(url)) {
+            return;
+        }
 
-		view.setText(builder.build());
-		view.setMovementMethod(LinkMovementMethod.getInstance());
-	}
+        SpannableBuilder builder = new SpannableBuilder(textView.getContext());
+        textView.setText(builder.build());
+        textView.setMovementMethod(LinkMovementMethod.getInstance());
+    }
 
-	class ViewHolder extends RecyclerView.ViewHolder {
-		@Bind(R.id.icon)
-		@Nullable
-		ImageView icon;
+    public void setIcon(@NonNull ImageView imageView,
+                        @NonNull UPnPDevice device,
+                        @Dimension int size) {
+        if (!TextUtils.isEmpty(device.getIconUrl())) {
+            mPicasso.load(device.getIconUrl())
+                    .error(getDefaultIcon())
+                    .resize(size, size)
+                    .centerInside()
+                    .into(imageView);
 
-		@Bind(R.id.friendly_name)
-		@Nullable
-		TextView friendlyName;
+        } else {
+            imageView.setImageResource(getDefaultIcon());
+        }
+    }
 
-		@Bind(R.id.location)
-		@Nullable
-		TextView location;
+    /////////////////
+    // ABSTRACTION //
+    /////////////////
 
-		public ViewHolder(View view) {
-			super(view);
-			ButterKnife.bind(this, view);
-		}
+    @DrawableRes
+    public abstract int getDefaultIcon();
 
-		@OnClick(R.id.root)
-		public void click(View view) {
-			int position = getAdapterPosition();
-			if (mListener != null) {
-				mListener.onClick(mItems.get(position), position);
-				notifyItemChanged(position);
-			}
-		}
-	}
 }
