@@ -40,6 +40,9 @@ public abstract class UPnPDeviceAdapter<VH extends RecyclerView.ViewHolder> exte
     private Comparator<UPnPDevice> mComparator = new UPnPDeviceComparator();
 
     @NonNull
+    private Context mContext;
+
+    @NonNull
     private LayoutInflater mInflater;
 
     @NonNull
@@ -49,6 +52,7 @@ public abstract class UPnPDeviceAdapter<VH extends RecyclerView.ViewHolder> exte
     private ArrayList<UPnPDevice> mItems;
 
     public UPnPDeviceAdapter(@NonNull Context context) {
+        mContext = context;
         mItems = new ArrayList<>();
 
         mInflater = LayoutInflater.from(context);
@@ -56,6 +60,10 @@ public abstract class UPnPDeviceAdapter<VH extends RecyclerView.ViewHolder> exte
         mPicasso.setIndicatorsEnabled(false);
 
         setHasStableIds(false);
+    }
+
+    public Context getContext() {
+        return mContext;
     }
 
     @NonNull
@@ -94,6 +102,11 @@ public abstract class UPnPDeviceAdapter<VH extends RecyclerView.ViewHolder> exte
     public void setName(@NonNull TextView textView,
                         @NonNull UPnPDevice device) {
         textView.setText(device.getFriendlyName());
+    }
+
+    public void setIpAddress(@NonNull TextView textView,
+                             @NonNull UPnPDevice device) {
+        textView.setText(device.getHost());
     }
 
     @SuppressLint("SetTextI18n")

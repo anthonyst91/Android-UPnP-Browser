@@ -28,6 +28,7 @@ import com.dgmltn.upnpbrowser.event.UPnPObserverEndedEvent;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 public class UPnPHelper {
 
@@ -78,29 +79,25 @@ public class UPnPHelper {
     //////////////////////
 
     @SuppressWarnings("WeakerAccess")
+    @UiThread
     public void onFirstUPnPDeviceFound() {
         //ignore
     }
 
     @SuppressWarnings("WeakerAccess")
-    @UiThread @CallSuper
+    @UiThread
     public void onUPnPDeviceFound(@NonNull UPnPDevice device) {
-        try {
-            device.downloadSpecs();
-        } catch (Exception e) {
-            Log.w(TAG, "onUPnPDeviceFound.downloadSpecs.Exception: " + e.getMessage());
-        }
-        Log.i(TAG, "onUPnPDeviceFound: " + device);
-
         addToRecycler(mAdapter, device);
     }
 
     @SuppressWarnings("WeakerAccess")
+    @UiThread
     public void onUPnPObserverEnded() {
         //ignore
     }
 
     @SuppressWarnings("WeakerAccess")
+    @UiThread
     public void onUPnPObserverError() {
         //ignore
     }
@@ -110,13 +107,15 @@ public class UPnPHelper {
     ///////////////
 
     @SuppressWarnings("unused")
-    @Subscribe
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    @UiThread
     public void onUPnPDeviceEvent(@NonNull UPnPDeviceEvent event) {
         onUPnPDeviceFound(event.getUPnPDevice());
     }
 
     @SuppressWarnings("unused")
-    @Subscribe
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    @UiThread
     public void onUPnPObserverEndedEvent(@NonNull UPnPObserverEndedEvent event) {
         Log.i(TAG, "onUPnPObserveEndedEvent");
         destroyObserver();
@@ -124,7 +123,8 @@ public class UPnPHelper {
     }
 
     @SuppressWarnings("unused")
-    @Subscribe
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    @UiThread
     public void onUPnPErrorEvent(@NonNull UPnPErrorEvent event) {
         Log.i(TAG, "onUPnPErrorEvent.errorCode: " + event.getErrorCode());
         destroyObserver();

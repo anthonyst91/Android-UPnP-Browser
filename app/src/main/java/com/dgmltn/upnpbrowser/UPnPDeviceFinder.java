@@ -16,6 +16,15 @@
 
 package com.dgmltn.upnpbrowser;
 
+import android.support.annotation.Nullable;
+import android.util.Log;
+
+import com.dgmltn.upnpbrowser.event.UPnPDeviceEvent;
+import com.dgmltn.upnpbrowser.event.UPnPErrorEvent;
+import com.dgmltn.upnpbrowser.event.UPnPObserverEndedEvent;
+
+import org.greenrobot.eventbus.EventBus;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -28,16 +37,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
-
-import android.support.annotation.Nullable;
-import android.util.Log;
-import android.util.TimeUtils;
-
-import com.dgmltn.upnpbrowser.event.UPnPDeviceEvent;
-import com.dgmltn.upnpbrowser.event.UPnPErrorEvent;
-import com.dgmltn.upnpbrowser.event.UPnPObserverEndedEvent;
-
-import org.greenrobot.eventbus.EventBus;
 
 import static com.dgmltn.upnpbrowser.event.UPnPErrorEvent.ERROR_NULL_SOCKET;
 
@@ -106,10 +105,23 @@ class UPnPDeviceFinder {
                 receivedString = receivedString.substring(0, dp.getLength());
                 Log.v(TAG, "UPnP.observe.device found: " + receivedString);
 
-                UPnPDevice device = UPnPDevice.parse(receivedString);
+                final UPnPDevice device = UPnPDevice.parse(receivedString);
 
                 if (device != null) {
-                    EventBus.getDefault().post(new UPnPDeviceEvent(device));
+                    Thread downloadThread = new Thread() {
+                        @Override
+                        public void run() {
+                            try {
+                                device.downloadSpecs();
+                            } catch (Exception e) {
+                                Log.w(TAG, "onUPnPDeviceFound.downloadSpecs.Exception: " + e.getMessage());
+                            }
+                            Log.i(TAG, "UPnP.device found: " + device);
+
+                            EventBus.getDefault().post(new UPnPDeviceEvent(device));
+                        }
+                    };
+                    downloadThread.start();
                 }
             }
 

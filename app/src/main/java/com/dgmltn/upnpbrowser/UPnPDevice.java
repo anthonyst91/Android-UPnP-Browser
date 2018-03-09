@@ -58,6 +58,7 @@ public class UPnPDevice {
     private UPnPDevice() {
     }
 
+    @NonNull
     public String getHost() {
         return mLocation.getHost();
     }
