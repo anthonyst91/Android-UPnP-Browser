@@ -20,10 +20,7 @@ import android.support.annotation.AnyThread;
 import android.support.annotation.CallSuper;
 import android.support.annotation.NonNull;
 import android.support.annotation.UiThread;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.view.View;
-import android.view.animation.DecelerateInterpolator;
 
 import com.dgmltn.upnpbrowser.event.UPnPDeviceEvent;
 import com.dgmltn.upnpbrowser.event.UPnPErrorEvent;
@@ -37,23 +34,17 @@ public class UPnPHelper {
     private static final String TAG = "UPnPHelper";
 
     @NonNull
-    private RecyclerView mRecycler;
-
-    @NonNull
     private UPnPDeviceAdapter mAdapter;
 
     @NonNull
     private UPnPDeviceFinder mUPnPFinder;
 
-    public UPnPHelper(@NonNull RecyclerView recycler,
-                      @NonNull UPnPDeviceAdapter adapter) {
-        this(recycler, adapter, 0);
+    public UPnPHelper(@NonNull UPnPDeviceAdapter adapter) {
+        this(adapter, 0);
     }
 
-    public UPnPHelper(@NonNull RecyclerView recycler,
-                      @NonNull UPnPDeviceAdapter adapter,
+    public UPnPHelper(@NonNull UPnPDeviceAdapter adapter,
                       int timeoutMs) {
-        this.mRecycler = recycler;
         this.mAdapter = adapter;
 
         this.mUPnPFinder = (timeoutMs > 0) ?
@@ -73,6 +64,7 @@ public class UPnPHelper {
         thread.start();
     }
 
+    @SuppressWarnings("WeakerAccess")
     @AnyThread
     public void destroyObserver() {
         EventBus.getDefault().unregister(this);
@@ -81,26 +73,48 @@ public class UPnPHelper {
         }
     }
 
-    ///////////////
-    // EVENT BUS //
-    ///////////////
+    //////////////////////
+    // BUSINESS METHODS //
+    //////////////////////
 
-    @Subscribe
-    public void onUPnPDeviceEvent(@NonNull UPnPDeviceEvent event) {
-        onUPnPDeviceFound(event.getUPnPDevice());
+    @SuppressWarnings("WeakerAccess")
+    public void onFirstUPnPDeviceFound() {
+        //ignore
     }
 
+    @SuppressWarnings("WeakerAccess")
     @UiThread @CallSuper
     public void onUPnPDeviceFound(@NonNull UPnPDevice device) {
         try {
             device.downloadSpecs();
         } catch (Exception e) {
-            Log.w(TAG, "onUPnPDeviceFound.downloadSpecs.Exception: ", e);
+            Log.w(TAG, "onUPnPDeviceFound.downloadSpecs.Exception: " + e.getMessage());
         }
 
-        addToRecycler(mRecycler, mAdapter, device);
+        addToRecycler(mAdapter, device);
     }
 
+    @SuppressWarnings("WeakerAccess")
+    public void onUPnPObserverEnded() {
+        //ignore
+    }
+
+    @SuppressWarnings("WeakerAccess")
+    public void onUPnPObserverError() {
+        //ignore
+    }
+
+    ///////////////
+    // EVENT BUS //
+    ///////////////
+
+    @SuppressWarnings("unused")
+    @Subscribe
+    public void onUPnPDeviceEvent(@NonNull UPnPDeviceEvent event) {
+        onUPnPDeviceFound(event.getUPnPDevice());
+    }
+
+    @SuppressWarnings("unused")
     @Subscribe
     public void onUPnPObserverEndedEvent(@NonNull UPnPObserverEndedEvent event) {
         Log.i(TAG, "onUPnPObserveEndedEvent");
@@ -108,10 +122,7 @@ public class UPnPHelper {
         onUPnPObserverEnded();
     }
 
-    public void onUPnPObserverEnded() {
-        //ignore
-    }
-
+    @SuppressWarnings("unused")
     @Subscribe
     public void onUPnPErrorEvent(@NonNull UPnPErrorEvent event) {
         Log.i(TAG, "onUPnPErrorEvent.errorCode: " + event.getErrorCode());
@@ -119,28 +130,15 @@ public class UPnPHelper {
         onUPnPObserverError();
     }
 
-    public void onUPnPObserverError() {
-        //ignore
-    }
-
     /////////////////////
     // PRIVATE METHODS //
     /////////////////////
 
     @UiThread
-    private void addToRecycler(@NonNull RecyclerView recycler,
-                               @NonNull UPnPDeviceAdapter adapter,
+    private void addToRecycler(@NonNull UPnPDeviceAdapter adapter,
                                @NonNull UPnPDevice device) {
-        // This is the first device found.
         if (adapter.getItemCount() == 0) {
-            recycler.setAlpha(0f);
-            recycler.setVisibility(View.VISIBLE);
-            recycler.animate()
-                    .alpha(1f)
-                    .setDuration(1000)
-                    .setStartDelay(1000)
-                    .setInterpolator(new DecelerateInterpolator())
-                    .start();
+            onFirstUPnPDeviceFound();
         }
         adapter.addItem(device);
     }
