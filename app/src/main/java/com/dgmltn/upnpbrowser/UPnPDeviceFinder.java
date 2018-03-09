@@ -26,10 +26,12 @@ import java.net.NetworkInterface;
 import java.net.SocketAddress;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 import android.support.annotation.Nullable;
 import android.util.Log;
+import android.util.TimeUtils;
 
 import com.dgmltn.upnpbrowser.event.UPnPDeviceEvent;
 import com.dgmltn.upnpbrowser.event.UPnPErrorEvent;
@@ -50,8 +52,9 @@ class UPnPDeviceFinder {
     private static final String MULTICAST_ADDRESS = "239.255.255.250";
     private static final int PORT = 1900;
 
-    private static final int MAX_REPLY_TIME = 60;
-    private static final int MSG_TIMEOUT = MAX_REPLY_TIME * 1000 + 1000;
+    private static final int DEFAULT_MAX_REPLY_TIME_MS = (int)TimeUnit.SECONDS.toMillis(60);
+
+    private int mTimeoutMs;
 
     // From Apache InetAddressUtils
     // https://hc.apache.org/httpcomponents-client-ga/httpclient/apidocs/org/apache/http/conn/util/InetAddressUtils.html
@@ -63,10 +66,16 @@ class UPnPDeviceFinder {
     private UPnPSocket mSock;
 
     UPnPDeviceFinder() {
-        this(true);
+        this(DEFAULT_MAX_REPLY_TIME_MS, true);
     }
 
-    private UPnPDeviceFinder(boolean IPV4) {
+    UPnPDeviceFinder(int timeoutMs) {
+        this(timeoutMs, true);
+    }
+
+    private UPnPDeviceFinder(int timeoutMs, boolean IPV4) {
+        this.mTimeoutMs = timeoutMs;
+
         InetAddress inetAddress = getDeviceLocalIP(IPV4);
         Log.d(TAG, "inet device address is: " + inetAddress);
 
@@ -125,7 +134,7 @@ class UPnPDeviceFinder {
     // UPnPSocket
     ////////////////////////////////////////////////////////////////////////////////
 
-    private static class UPnPSocket {
+    private class UPnPSocket {
 
         private static final String TAG = "UPnPSocket";
 
@@ -138,7 +147,7 @@ class UPnPDeviceFinder {
             mMulticastGroup = new InetSocketAddress(MULTICAST_ADDRESS, PORT);
             mMultiSocket = new MulticastSocket(new InetSocketAddress(deviceIp, 0));
 
-            mMultiSocket.setSoTimeout(MSG_TIMEOUT);
+            mMultiSocket.setSoTimeout(mTimeoutMs + 1000);
         }
 
         void sendMulticastMsg() throws IOException {
@@ -178,13 +187,13 @@ class UPnPDeviceFinder {
     // Utils
     ////////////////////////////////////////////////////////////////////////////////
 
-    private static String buildSSDPSearchString() {
+    private String buildSSDPSearchString() {
         StringBuilder content = new StringBuilder();
 
         content.append("M-SEARCH * HTTP/1.1").append(NEWLINE);
         content.append("Host: " + MULTICAST_ADDRESS + ":" + PORT).append(NEWLINE);
         content.append("Man:\"ssdp:discover\"").append(NEWLINE);
-        content.append("MX: " + MAX_REPLY_TIME).append(NEWLINE);
+        content.append("MX: ").append(TimeUnit.MILLISECONDS.toSeconds(mTimeoutMs)).append(NEWLINE);
         content.append("ST: upnp:rootdevice").append(NEWLINE);
         content.append(NEWLINE);
 

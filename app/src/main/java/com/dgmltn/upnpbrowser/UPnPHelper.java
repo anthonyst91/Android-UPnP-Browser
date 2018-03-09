@@ -47,10 +47,17 @@ public class UPnPHelper {
 
     public UPnPHelper(@NonNull RecyclerView recycler,
                       @NonNull UPnPDeviceAdapter adapter) {
+        this(recycler, adapter, 0);
+    }
+
+    public UPnPHelper(@NonNull RecyclerView recycler,
+                      @NonNull UPnPDeviceAdapter adapter,
+                      int timeoutMs) {
         this.mRecycler = recycler;
         this.mAdapter = adapter;
 
-        this.mUPnPFinder = new UPnPDeviceFinder();
+        this.mUPnPFinder = (timeoutMs > 0) ?
+                new UPnPDeviceFinder(timeoutMs) : new UPnPDeviceFinder();
     }
 
     @AnyThread
