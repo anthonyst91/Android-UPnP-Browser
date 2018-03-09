@@ -95,10 +95,10 @@ public class UPnPHelper {
     public void onUPnPObserverEndedEvent(@NonNull UPnPObserverEndedEvent event) {
         Log.i(TAG, "onUPnPObserveEndedEvent");
         destroyObserver();
-        onUPnPObserveEnded();
+        onUPnPObserverEnded();
     }
 
-    public void onUPnPObserveEnded() {
+    public void onUPnPObserverEnded() {
         //ignore
     }
 
