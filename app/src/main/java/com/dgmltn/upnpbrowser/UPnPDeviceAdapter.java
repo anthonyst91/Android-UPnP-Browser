@@ -34,7 +34,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
-public abstract class UPnPDeviceAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+public abstract class UPnPDeviceAdapter<VH extends RecyclerView.ViewHolder> extends RecyclerView.Adapter<VH> {
 
     private Comparator<UPnPDevice> mComparator = new UPnPDeviceComparator();
 
