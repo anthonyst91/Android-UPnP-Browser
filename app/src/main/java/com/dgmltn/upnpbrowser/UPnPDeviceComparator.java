@@ -27,19 +27,19 @@ import io.reactivex.annotations.Nullable;
 class UPnPDeviceComparator implements Comparator<UPnPDevice> {
 
     @Override
-    public int compare(@Nullable UPnPDevice lhs,
-                       @Nullable UPnPDevice rhs) {
+    public int compare(@Nullable UPnPDevice device1,
+                       @Nullable UPnPDevice device2) {
         // Handle null objects
-        int compare = compareNull(lhs, rhs);
-        if (compare == 0 && lhs == null) {
+        int compare = compareNull(device1, device2);
+        if (compare == 0 && device1 == null) {
             return compare;
         }
 
-        URL mine = lhs.getLocation();
-        URL hers = rhs.getLocation();
+        URL mine = device1.getLocation();
+        URL hers = device2.getLocation();
         compare = compareNull(mine, hers);
         //noinspection ConstantConditions
-        if (compare == 0 && lhs == null) {
+        if (compare == 0 && device1 == null) {
             return compare;
         }
 

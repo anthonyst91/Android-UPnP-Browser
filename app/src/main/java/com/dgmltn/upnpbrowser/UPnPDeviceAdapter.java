@@ -104,6 +104,11 @@ public abstract class UPnPDeviceAdapter<VH extends RecyclerView.ViewHolder> exte
         textView.setText(device.getFriendlyName());
     }
 
+    public void setManufacturer(@NonNull TextView textView,
+                                @NonNull UPnPDevice device) {
+        textView.setText(device.getManufacturer());
+    }
+
     public void setIpAddress(@NonNull TextView textView,
                              @NonNull UPnPDevice device) {
         textView.setText(device.getHost());
