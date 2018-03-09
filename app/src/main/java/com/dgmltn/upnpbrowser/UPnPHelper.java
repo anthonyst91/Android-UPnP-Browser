@@ -90,6 +90,7 @@ public class UPnPHelper {
         } catch (Exception e) {
             Log.w(TAG, "onUPnPDeviceFound.downloadSpecs.Exception: " + e.getMessage());
         }
+        Log.i(TAG, "onUPnPDeviceFound: " + device);
 
         addToRecycler(mAdapter, device);
     }

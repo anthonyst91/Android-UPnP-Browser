@@ -104,7 +104,7 @@ class UPnPDeviceFinder {
                 String receivedString = new String(dp.getData());
 
                 receivedString = receivedString.substring(0, dp.getLength());
-                Log.i(TAG, "UPnP.observe.device found: " + receivedString);
+                Log.v(TAG, "UPnP.observe.device found: " + receivedString);
 
                 UPnPDevice device = UPnPDevice.parse(receivedString);
 

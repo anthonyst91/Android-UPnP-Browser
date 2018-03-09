@@ -115,6 +115,24 @@ public class UPnPDevice {
         return friendlyName;
     }
 
+    @Override
+    public String toString() {
+        InetAddress inetAddr = null;
+        try {
+            inetAddr = getInetAddress();
+        } catch (UnknownHostException e) {
+            //ignore
+        }
+        return "UPnPDevice {" +
+                "friendlyName: " + getFriendlyName() +
+                ", scrubbedName: " + getScrubbedFriendlyName() +
+                ", server: " + getServer() +
+                ", host: " + getHost() +
+                ", inetAddr: " + inetAddr +
+                ", location: " + getLocation() +
+                ", iconUrl: " + getIconUrl();
+    }
+
     ////////////////////////////////////////////////////////////////////////////////
     // UPnP Response Parsing
     ////////////////////////////////////////////////////////////////////////////////
