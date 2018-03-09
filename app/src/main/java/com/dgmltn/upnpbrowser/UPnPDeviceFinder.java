@@ -86,7 +86,7 @@ class UPnPDeviceFinder {
         }
     }
 
-    boolean observe() {
+    void observe() {
         if (mSock == null) {
             EventBus.getDefault().post(new UPnPErrorEvent(ERROR_NULL_SOCKET));
         }
@@ -119,7 +119,6 @@ class UPnPDeviceFinder {
             mSock.close();
             EventBus.getDefault().post(new UPnPObserverEndedEvent());
         }
-        return true;
     }
 
     @Nullable
@@ -142,8 +141,6 @@ class UPnPDeviceFinder {
         private MulticastSocket mMultiSocket;
 
         UPnPSocket(InetAddress deviceIp) throws IOException {
-            Log.e(TAG, "UPnPSocket");
-
             mMulticastGroup = new InetSocketAddress(MULTICAST_ADDRESS, PORT);
             mMultiSocket = new MulticastSocket(new InetSocketAddress(deviceIp, 0));
 
@@ -153,7 +150,7 @@ class UPnPDeviceFinder {
         void sendMulticastMsg() throws IOException {
             String ssdpMsg = buildSSDPSearchString();
 
-            Log.e(TAG, "sendMulticastMsg: " + ssdpMsg);
+            Log.d(TAG, "sendMulticastMsg: " + ssdpMsg);
 
             DatagramPacket dp = new DatagramPacket(ssdpMsg.getBytes(), ssdpMsg.length(), mMulticastGroup);
             mMultiSocket.send(dp);
@@ -197,7 +194,7 @@ class UPnPDeviceFinder {
         content.append("ST: upnp:rootdevice").append(NEWLINE);
         content.append(NEWLINE);
 
-        Log.e(TAG, content.toString());
+        Log.d(TAG, "buildSSDPSearchString: " + content.toString());
 
         return content.toString();
     }
@@ -209,7 +206,7 @@ class UPnPDeviceFinder {
                 List<InetAddress> addrs = Collections.list(intf.getInetAddresses());
                 for (InetAddress addr : addrs) {
                     if (!addr.isLoopbackAddress()) {
-                        Log.e(TAG, "IP from inet is: " + addr);
+                        Log.i(TAG, "IP from inet is: " + addr);
                         String sAddr = addr.getHostAddress().toUpperCase();
                         boolean isIPv4 = isIPv4Address(sAddr);
                         if (useIPv4) {
