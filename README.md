@@ -11,27 +11,27 @@ Usage
 UPnPHelper is the main entry. You only need to provide it your own adapter (which should extends UPnPDeviceAdapter)
 
 ```android
-	UPnPDeviceAdapter<MyViewHolder> adapter = new UPnPDeviceAdapter<MyViewHolder>(this){
-		@NonNull
-		@Override
-		public MyViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-			//CREATE YOUR HOLDER
-		}
+UPnPDeviceAdapter<MyViewHolder> adapter = new UPnPDeviceAdapter<MyViewHolder>(this){
+	@NonNull
+	@Override
+	public MyViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+		//CREATE YOUR HOLDER
+	}
 
-		@Override
-		public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
-			//BIND YOUR HOLDER
-		}
-		
-		@Override
-		@DrawableRes
-		public int getDefaultIcon() {
-			//RETURN DEFAULT DEVICE DRAWABLE
-		}
-	};
+	@Override
+	public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
+		//BIND YOUR HOLDER
+	}
 	
-	UPnPHelper helper = new UPnPHelper(adapter);
-	helper.startObserver();
+	@Override
+	@DrawableRes
+	public int getDefaultIcon() {
+		//RETURN DEFAULT DEVICE DRAWABLE
+	}
+};
+
+UPnPHelper helper = new UPnPHelper(adapter);
+helper.startObserver();
 ```
 
 The UPnPHelper will open a socket and wait for the UPnPDevices. Each time a new UPnPDevice is found, it will added to your adapter. If the device found already exists in the adapter, it will automatically updated if its parameters have changed.
@@ -39,39 +39,39 @@ The UPnPHelper will open a socket and wait for the UPnPDevices. Each time a new 
 You can change the default UPnP socket timeout (the default value is set to 60 seconds)
 
 ```android
-	UPnPHelper helper = new UPnPHelper(adapter, 10000); // 10 secondes
-	helper.startObserver();
+UPnPHelper helper = new UPnPHelper(adapter, 10000); // 10 secondes
+helper.startObserver();
 ```
 
 You can stop the observation process at any moment by calling destroyObserver.
 
 ```android
-    helper.destroyObserver();
+helper.destroyObserver();
 ```
 
 
 You can override UPnPHelper in order to execute your own code in the following callbacks:
 
 ```android
-	/**
-	 * Called when the first device has been found, before adding it to the adapter.
-	 */
-    void onFirstUPnPDeviceFound();
-    
-    /**
-	 * Called each time a device is found / updated.
-	 */
-    void onUPnPDeviceFound(@NonNull UPnPDevice device);
-    
-    /**
-	 * Called when the UPnP observation has ended (timeout - or destroyObserver called)
-	 */
-    void onUPnPObserverEnded();
-    
-    /**
-	 * Called on UPnP observation error.
-	 */
-    void onUPnPObserverError();
+/**
+ * Called when the first device has been found, before adding it to the adapter.
+ */
+void onFirstUPnPDeviceFound();
+
+/**
+ * Called each time a device is found / updated.
+ */
+void onUPnPDeviceFound(@NonNull UPnPDevice device);
+
+/**
+ * Called when the UPnP observation has ended (timeout - or destroyObserver called)
+ */
+void onUPnPObserverEnded();
+
+/**
+ * Called on UPnP observation error.
+ */
+void onUPnPObserverError();
 ```
 
 
