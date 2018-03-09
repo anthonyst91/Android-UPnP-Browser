@@ -18,6 +18,7 @@ package com.dgmltn.upnpbrowser;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
+import android.support.v4.content.ContextCompat;
 import android.text.SpannableStringBuilder;
 import android.text.style.CharacterStyle;
 import android.text.style.ImageSpan;
@@ -53,7 +54,10 @@ class SpannableBuilder {
 	}
 
 	public void append(int drawableResId) {
-		Drawable d = mContext.getResources().getDrawable(drawableResId);
+		Drawable d = ContextCompat.getDrawable(mContext, drawableResId);
+		if (d == null) {
+		    return;
+        }
 		d.setBounds(0, 0, d.getIntrinsicWidth(), d.getIntrinsicHeight());
 		append(" ", new ImageSpan(d, ImageSpan.ALIGN_BASELINE));
 	}

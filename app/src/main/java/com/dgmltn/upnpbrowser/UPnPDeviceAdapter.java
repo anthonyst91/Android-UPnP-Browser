@@ -47,7 +47,7 @@ public abstract class UPnPDeviceAdapter<VH extends RecyclerView.ViewHolder> exte
     @NonNull
     private ArrayList<UPnPDevice> mItems;
 
-    public UPnPDeviceAdapter(Context context) {
+    public UPnPDeviceAdapter(@NonNull Context context) {
         mItems = new ArrayList<>();
 
         mInflater = LayoutInflater.from(context);
