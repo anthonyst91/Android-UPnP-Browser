@@ -16,6 +16,7 @@
 
 package com.dgmltn.upnpbrowser;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.support.annotation.Dimension;
 import android.support.annotation.DrawableRes;
@@ -92,15 +93,16 @@ public abstract class UPnPDeviceAdapter<VH extends RecyclerView.ViewHolder> exte
 
     public void setName(@NonNull TextView textView,
                         @NonNull UPnPDevice device) {
-        String friendlyName = device.getScrubbedFriendlyName();
-        if (TextUtils.isEmpty(friendlyName)) {
-            friendlyName = "[unnamed]";
-        }
-        textView.setText(friendlyName);
+        textView.setText(device.getFriendlyName());
     }
 
+    @SuppressLint("SetTextI18n")
     public void setLocation(@NonNull TextView textView,
                             @NonNull UPnPDevice device) {
+        if (device.getLocation() == null) {
+            textView.setText("unknown");
+            return;
+        }
         String loc = device.getLocation().toExternalForm()
                 // Uncomment to obscure actual ip addresses for screenshots
                 // .replaceAll("[0-9]+\\.[0-9]+\\.[0-9]+", "192.258.1")

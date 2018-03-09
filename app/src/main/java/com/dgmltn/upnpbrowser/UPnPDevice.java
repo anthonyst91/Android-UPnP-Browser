@@ -83,36 +83,43 @@ public class UPnPDevice {
         return mServer;
     }
 
+    @Nullable
     public String getIconUrl() {
         return mCachedIconUrl;
     }
 
-    public String generateIconUrl() {
-        String path = mProperties.get("xml_icon_url");
-        if (TextUtils.isEmpty(path)) {
-            return null;
-        }
-        if (path.startsWith("/")) {
-            path = path.substring(1);
-        }
-        mCachedIconUrl = mLocation.getProtocol() + "://" + mLocation.getHost() + ":" + mLocation.getPort() + "/" + path;
-        return mCachedIconUrl;
-    }
-
+    @NonNull
     public String getFriendlyName() {
-        return mProperties.get("xml_friendly_name");
-    }
-
-    public String getScrubbedFriendlyName() {
         String friendlyName = mProperties.get("xml_friendly_name");
-
         // Special case for SONOS: remove the leading ip address from the friendly name
         // "192.168.1.123 - Sonos PLAY:1" => "Sonos PLAY:1"
         if (friendlyName != null && friendlyName.startsWith(getHost() + " - ")) {
             friendlyName = friendlyName.substring(getHost().length() + 3);
         }
+        return TextUtils.isEmpty(friendlyName) ? "unknown" : friendlyName;
+    }
 
-        return friendlyName;
+    @NonNull
+    public String getDeviceType() {
+        String deviceType = mProperties.get("xml_device_type");
+        return TextUtils.isEmpty(deviceType) ? "unknown" : deviceType;
+    }
+
+    @NonNull
+    public String getManufacturer() {
+        String manufacturer = mProperties.get("xml_manufacturer");
+        return TextUtils.isEmpty(manufacturer) ? "unknown" : manufacturer;
+    }
+
+    @Nullable
+    public String getManufacturerUrl() {
+        return mProperties.get("xml_manufacturer_url");
+    }
+
+    @NonNull
+    public String getModelName() {
+        String modelName = mProperties.get("xml_model_name");
+        return TextUtils.isEmpty(modelName) ? "unknown" : modelName;
     }
 
     @Override
@@ -125,12 +132,15 @@ public class UPnPDevice {
         }
         return "UPnPDevice {" +
                 "friendlyName: " + getFriendlyName() +
-                ", scrubbedName: " + getScrubbedFriendlyName() +
                 ", server: " + getServer() +
                 ", host: " + getHost() +
                 ", inetAddr: " + inetAddr +
                 ", location: " + getLocation() +
-                ", iconUrl: " + getIconUrl();
+                ", iconUrl: " + getIconUrl() +
+                ", deviceType: " + getDeviceType() +
+                ", modelName: " + getModelName() +
+                ", manufacturer: " + getManufacturer() +
+                ", manufacturerUrl: " + getManufacturerUrl();
     }
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -197,8 +207,24 @@ public class UPnPDevice {
         }
         XPath xPath = XPathFactory.newInstance().newXPath();
 
+        mProperties.put("xml_friendly_name", xPath.compile("//friendlyName").evaluate(doc));
+        mProperties.put("xml_device_type", xPath.compile("//deviceType").evaluate(doc));
+        mProperties.put("xml_manufacturer", xPath.compile("//manufacturer").evaluate(doc));
+        mProperties.put("xml_manufacturer_url", xPath.compile("//manufacturerURL").evaluate(doc));
+        mProperties.put("xml_model_name", xPath.compile("//modelName").evaluate(doc));
+
         mProperties.put("xml_icon_url", xPath.compile("//icon/url").evaluate(doc));
         generateIconUrl();
-        mProperties.put("xml_friendly_name", xPath.compile("//friendlyName").evaluate(doc));
+    }
+
+    private void generateIconUrl() {
+        String path = mProperties.get("xml_icon_url");
+        if (TextUtils.isEmpty(path)) {
+            return;
+        }
+        if (path.startsWith("/")) {
+            path = path.substring(1);
+        }
+        mCachedIconUrl = mLocation.getProtocol() + "://" + mLocation.getHost() + ":" + mLocation.getPort() + "/" + path;
     }
 }
