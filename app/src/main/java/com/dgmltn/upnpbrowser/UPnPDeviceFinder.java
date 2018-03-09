@@ -18,6 +18,7 @@ package com.dgmltn.upnpbrowser;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
+import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.MulticastSocket;
@@ -27,6 +28,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.dgmltn.upnpbrowser.event.UPnPDeviceEvent;
@@ -111,6 +113,14 @@ class UPnPDeviceFinder {
         return true;
     }
 
+    @Nullable
+    public DatagramSocket getSocket() {
+        if (mSock != null) {
+            return mSock.getSocket();
+        }
+        return null;
+    }
+
     ////////////////////////////////////////////////////////////////////////////////
     // UPnPSocket
     ////////////////////////////////////////////////////////////////////////////////
@@ -156,6 +166,11 @@ class UPnPDeviceFinder {
             if (mMultiSocket != null) {
                 mMultiSocket.close();
             }
+        }
+
+        @Nullable
+        public DatagramSocket getSocket() {
+            return mMultiSocket;
         }
     }
 

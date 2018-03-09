@@ -69,6 +69,9 @@ public class UPnPHelper {
     @AnyThread
     public void destroyObserver() {
         EventBus.getDefault().unregister(this);
+        if (mUPnPFinder.getSocket() != null) {
+            mUPnPFinder.getSocket().close();
+        }
     }
 
     ///////////////
