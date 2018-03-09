@@ -31,7 +31,7 @@ import android.util.Log;
 
 import com.dgmltn.upnpbrowser.event.UPnPDeviceEvent;
 import com.dgmltn.upnpbrowser.event.UPnPErrorEvent;
-import com.dgmltn.upnpbrowser.event.UPnPObserveEndedEvent;
+import com.dgmltn.upnpbrowser.event.UPnPObserverEndedEvent;
 
 import org.greenrobot.eventbus.EventBus;
 
@@ -106,7 +106,7 @@ class UPnPDeviceFinder {
             //sock timeout will get us out of the loop
             Log.i(TAG, "observe.timed out: " + e.getMessage());
             mSock.close();
-            EventBus.getDefault().post(new UPnPObserveEndedEvent());
+            EventBus.getDefault().post(new UPnPObserverEndedEvent());
         }
         return true;
     }

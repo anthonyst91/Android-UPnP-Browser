@@ -17,6 +17,7 @@
 package com.dgmltn.upnpbrowser;
 
 import android.support.annotation.AnyThread;
+import android.support.annotation.CallSuper;
 import android.support.annotation.NonNull;
 import android.support.annotation.UiThread;
 import android.support.v7.widget.RecyclerView;
@@ -26,7 +27,7 @@ import android.view.animation.DecelerateInterpolator;
 
 import com.dgmltn.upnpbrowser.event.UPnPDeviceEvent;
 import com.dgmltn.upnpbrowser.event.UPnPErrorEvent;
-import com.dgmltn.upnpbrowser.event.UPnPObserveEndedEvent;
+import com.dgmltn.upnpbrowser.event.UPnPObserverEndedEvent;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -79,24 +80,8 @@ public class UPnPHelper {
         onUPnPDeviceFound(event.getUPnPDevice());
     }
 
-    @Subscribe
-    public void onUPnPObserveEndedEvent(@NonNull UPnPObserveEndedEvent event) {
-        Log.i(TAG, "onUPnPObserveEndedEvent");
-        destroyObserver();
-    }
-
-    @Subscribe
-    public void onUPnPErrorEvent(@NonNull UPnPErrorEvent event) {
-        destroyObserver();
-        Log.i(TAG, "onUPnPErrorEvent.errorCode: " + event.getErrorCode());
-    }
-
-    /////////////////////
-    // PRIVATE METHODS //
-    /////////////////////
-
-    @UiThread
-    private void onUPnPDeviceFound(@NonNull UPnPDevice device) {
+    @UiThread @CallSuper
+    public void onUPnPDeviceFound(@NonNull UPnPDevice device) {
         try {
             device.downloadSpecs();
         } catch (Exception e) {
@@ -105,6 +90,32 @@ public class UPnPHelper {
 
         addToRecycler(mRecycler, mAdapter, device);
     }
+
+    @Subscribe
+    public void onUPnPObserverEndedEvent(@NonNull UPnPObserverEndedEvent event) {
+        Log.i(TAG, "onUPnPObserveEndedEvent");
+        destroyObserver();
+        onUPnPObserveEnded();
+    }
+
+    public void onUPnPObserveEnded() {
+        //ignore
+    }
+
+    @Subscribe
+    public void onUPnPErrorEvent(@NonNull UPnPErrorEvent event) {
+        Log.i(TAG, "onUPnPErrorEvent.errorCode: " + event.getErrorCode());
+        destroyObserver();
+        onUPnPObserverError();
+    }
+
+    public void onUPnPObserverError() {
+        //ignore
+    }
+
+    /////////////////////
+    // PRIVATE METHODS //
+    /////////////////////
 
     @UiThread
     private void addToRecycler(@NonNull RecyclerView recycler,
