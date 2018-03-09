@@ -16,6 +16,15 @@
 
 package com.dgmltn.upnpbrowser;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.text.TextUtils;
+import android.util.Log;
+
+import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXParseException;
+
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.InetAddress;
@@ -28,15 +37,6 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathFactory;
-
-import org.w3c.dom.Document;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXParseException;
-
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.text.TextUtils;
-import android.util.Log;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -63,19 +63,27 @@ public class UPnPDevice {
         return mLocation.getHost();
     }
 
+    public int getPort() {
+        return mLocation.getPort();
+    }
+
+    @SuppressWarnings("WeakerAccess")
     public InetAddress getInetAddress() throws UnknownHostException {
         return InetAddress.getByName(getHost());
     }
 
+    @SuppressWarnings("WeakerAccess")
     @Nullable
     public URL getLocation() {
         return mLocation;
     }
 
+    @SuppressWarnings("unused")
     public String getRawUPnP() {
         return mRawUPnP;
     }
 
+    @SuppressWarnings("unused")
     public String getRawXml() {
         return mRawXml;
     }
@@ -84,43 +92,57 @@ public class UPnPDevice {
         return mServer;
     }
 
+    @SuppressWarnings("WeakerAccess")
     @Nullable
     public String getIconUrl() {
         return mCachedIconUrl;
     }
 
+    @SuppressWarnings({"WeakerAccess", "SameParameterValue"})
     @NonNull
-    public String getFriendlyName() {
+    public String getFriendlyName(@Nullable String defaultValue) {
         String friendlyName = mProperties.get("xml_friendly_name");
         // Special case for SONOS: remove the leading ip address from the friendly name
         // "192.168.1.123 - Sonos PLAY:1" => "Sonos PLAY:1"
         if (friendlyName != null && friendlyName.startsWith(getHost() + " - ")) {
             friendlyName = friendlyName.substring(getHost().length() + 3);
         }
-        return TextUtils.isEmpty(friendlyName) ? "unknown" : friendlyName;
+        return TextUtils.isEmpty(friendlyName) ?
+                (!TextUtils.isEmpty(defaultValue) ? defaultValue : "unknown")
+                 : friendlyName;
     }
 
+    @SuppressWarnings({"WeakerAccess", "SameParameterValue"})
     @NonNull
-    public String getDeviceType() {
+    public String getDeviceType(@Nullable String defaultValue) {
         String deviceType = mProperties.get("xml_device_type");
-        return TextUtils.isEmpty(deviceType) ? "unknown" : deviceType;
+        return TextUtils.isEmpty(deviceType) ?
+                (!TextUtils.isEmpty(defaultValue) ? defaultValue : "unknown")
+                : deviceType;
     }
 
+    @SuppressWarnings({"WeakerAccess", "SameParameterValue"})
     @NonNull
-    public String getManufacturer() {
+    public String getManufacturer(@Nullable String defaultValue) {
         String manufacturer = mProperties.get("xml_manufacturer");
-        return TextUtils.isEmpty(manufacturer) ? "unknown" : manufacturer;
+        return TextUtils.isEmpty(manufacturer) ?
+                (!TextUtils.isEmpty(defaultValue) ? defaultValue : "unknown")
+                : manufacturer;
     }
 
+    @SuppressWarnings({"WeakerAccess", "SameParameterValue"})
     @Nullable
     public String getManufacturerUrl() {
         return mProperties.get("xml_manufacturer_url");
     }
 
+    @SuppressWarnings({"WeakerAccess", "SameParameterValue"})
     @NonNull
-    public String getModelName() {
+    public String getModelName(@Nullable String defaultValue) {
         String modelName = mProperties.get("xml_model_name");
-        return TextUtils.isEmpty(modelName) ? "unknown" : modelName;
+        return TextUtils.isEmpty(modelName) ?
+                (!TextUtils.isEmpty(defaultValue) ? defaultValue : "unknown")
+                : modelName;
     }
 
     @Override
@@ -132,15 +154,16 @@ public class UPnPDevice {
             //ignore
         }
         return "UPnPDevice {" +
-                "friendlyName: " + getFriendlyName() +
+                "friendlyName: " + getFriendlyName(null) +
                 ", server: " + getServer() +
                 ", host: " + getHost() +
+                ", port: " + getPort() +
                 ", inetAddr: " + inetAddr +
                 ", location: " + getLocation() +
                 ", iconUrl: " + getIconUrl() +
-                ", deviceType: " + getDeviceType() +
-                ", modelName: " + getModelName() +
-                ", manufacturer: " + getManufacturer() +
+                ", deviceType: " + getDeviceType(null) +
+                ", modelName: " + getModelName(null) +
+                ", manufacturer: " + getManufacturer(null) +
                 ", manufacturerUrl: " + getManufacturerUrl();
     }
 

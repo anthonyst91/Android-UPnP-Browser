@@ -34,6 +34,7 @@ import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Locale;
 
 public abstract class UPnPDeviceAdapter<VH extends RecyclerView.ViewHolder> extends RecyclerView.Adapter<VH> {
 
@@ -100,25 +101,33 @@ public abstract class UPnPDeviceAdapter<VH extends RecyclerView.ViewHolder> exte
     }
 
     public void setName(@NonNull TextView textView,
-                        @NonNull UPnPDevice device) {
-        textView.setText(device.getFriendlyName());
+                        @NonNull UPnPDevice device,
+                        @Nullable String defaultValue) {
+        textView.setText(device.getFriendlyName(defaultValue));
     }
 
     public void setManufacturer(@NonNull TextView textView,
-                                @NonNull UPnPDevice device) {
-        textView.setText(device.getManufacturer());
+                                @NonNull UPnPDevice device,
+                                @Nullable String defaultValue) {
+        textView.setText(device.getManufacturer(defaultValue));
     }
 
-    public void setIpAddress(@NonNull TextView textView,
-                             @NonNull UPnPDevice device) {
+    public void setHost(@NonNull TextView textView,
+                        @NonNull UPnPDevice device) {
         textView.setText(device.getHost());
+    }
+
+    public void setHostAndPort(@NonNull TextView textView,
+                               @NonNull UPnPDevice device) {
+        textView.setText(String.format(Locale.getDefault(),
+                "%s (%d)", device.getHost(), device.getPort()));
     }
 
     @SuppressLint("SetTextI18n")
     public void setLocation(@NonNull TextView textView,
                             @NonNull UPnPDevice device) {
         if (device.getLocation() == null) {
-            textView.setText("unknown");
+            textView.setText(getContext().getString(R.string.upnp_parameter_default_value));
             return;
         }
         String loc = device.getLocation().toExternalForm()
