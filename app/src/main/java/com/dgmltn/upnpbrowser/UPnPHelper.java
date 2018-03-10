@@ -102,6 +102,11 @@ public class UPnPHelper {
         //ignore
     }
 
+    @NonNull
+    public UPnPDeviceAdapter getAdapter() {
+        return mAdapter;
+    }
+
     ///////////////
     // EVENT BUS //
     ///////////////
