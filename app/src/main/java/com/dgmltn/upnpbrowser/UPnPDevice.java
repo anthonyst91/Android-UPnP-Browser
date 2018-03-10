@@ -26,6 +26,7 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXParseException;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.io.StringReader;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
@@ -43,7 +44,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 
-public class UPnPDevice {
+public class UPnPDevice implements Serializable {
 
     private static final String TAG = "UPnPDevice";
 
