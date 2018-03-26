@@ -18,14 +18,13 @@ android {
         debug {
         }
         release {
-            minifyEnabled false
+            minifyEnabled true
             debuggable false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFiles 'proguard-rules.pro'
         }
         mock {
             initWith(buildTypes.release)
             minifyEnabled false
-            shrinkResources false
             debuggable true
             multiDexEnabled true
         }
