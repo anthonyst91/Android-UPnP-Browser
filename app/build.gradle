@@ -57,21 +57,21 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
 
     // Support RecyclerView
-    compile "com.android.support:recyclerview-v7:$support_version"
+    implementation "com.android.support:recyclerview-v7:$support_version"
 
     // EventBus -> https://github.com/greenrobot/EventBus
-    compile "org.greenrobot:eventbus:$eventbus_version"
+    implementation "org.greenrobot:eventbus:$eventbus_version"
 
     // okhttp3 -> http://square.github.io/okhttp
-    compile "com.squareup.okhttp3:okhttp-urlconnection:$okhttp3_version"
-    compile "com.squareup.okhttp3:okhttp:$okhttp3_version"
+    implementation "com.squareup.okhttp3:okhttp-urlconnection:$okhttp3_version"
+    implementation "com.squareup.okhttp3:okhttp:$okhttp3_version"
 
     // RX Android -> https://github.com/ReactiveX/RxAndroid
-    compile "io.reactivex.rxjava2:rxandroid:2.0.2"
+    implementation "io.reactivex.rxjava2:rxandroid:2.0.2"
 
     // Picasso -> https://github.com/square/picasso
-    compile "com.squareup.picasso:picasso:2.71828"
+    implementation "com.squareup.picasso:picasso:2.71828"
 }
