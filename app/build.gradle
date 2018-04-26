@@ -23,7 +23,6 @@ android {
             proguardFiles 'proguard-rules.pro'
         }
         mock {
-            initWith(buildTypes.release)
             minifyEnabled false
             debuggable true
             multiDexEnabled true
