@@ -38,13 +38,7 @@ android {
         phones {
             dimension "printoid"
         }
-        phonesTest {
-            dimension "printoid"
-        }
         phonesTrial {
-            dimension "printoid"
-        }
-        tablets {
             dimension "printoid"
         }
     }
