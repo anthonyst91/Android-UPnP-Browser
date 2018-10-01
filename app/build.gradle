@@ -53,6 +53,9 @@ dependencies {
     // Support RecyclerView
     implementation "com.android.support:recyclerview-v7:$support_version"
 
+    // Support RecyclerView
+    implementation "com.android.support:appcompat-v7:$support_version"
+
     // EventBus -> https://github.com/greenrobot/EventBus
     implementation "org.greenrobot:eventbus:$eventbus_version"
 

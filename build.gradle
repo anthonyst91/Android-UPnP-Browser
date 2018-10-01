@@ -2,33 +2,26 @@
 
 buildscript {
 
-    if (!project.hasProperty('gradle_plugin_version'))
-        ext.gradle_plugin_version = '3.0.1'
-
-    if (!project.hasProperty('support_version'))
-        ext.support_version = '27.1.0'
-
-    if (!project.hasProperty('okhttp3_version'))
-        ext.okhttp3_version = '3.9.1'
-
-    if (!project.hasProperty('rxandroid_version'))
-        ext.rxandroid_version = '2.0.2'
-
-    if (!project.hasProperty('eventbus_version'))
-        ext.eventbus_version = '3.0.0'
+    ext {
+        gradle_plugin_version = '3.2.1'
+        support_version = '28.0.0'
+        okhttp3_version = '3.11.0'
+        rxandroid_version = '2.0.2'
+        eventbus_version = '3.1.1'
+    }
 
     repositories {
-        jcenter()
         google()
+        jcenter()
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.1.4'
+        classpath "com.android.tools.build:gradle:$gradle_plugin_version"
     }
 }
 
-ext.compileSdkVersion = 27
-ext.targetSdkVersion = 27
+ext.compileSdkVersion = 28
+ext.targetSdkVersion = 28
 ext.minSdkVersion = 14
 
 ext.buildToolsVersion = "27.0.3"
@@ -38,6 +31,7 @@ ext.versionCode = 1000
 
 allprojects {
     repositories {
+        google()
         jcenter()
     }
 }

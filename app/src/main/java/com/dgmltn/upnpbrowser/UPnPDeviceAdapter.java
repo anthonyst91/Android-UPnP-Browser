@@ -22,11 +22,11 @@ import android.support.annotation.Dimension;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v7.widget.AppCompatImageView;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
@@ -148,7 +148,7 @@ public abstract class UPnPDeviceAdapter<VH extends RecyclerView.ViewHolder> exte
         textView.setMovementMethod(LinkMovementMethod.getInstance());
     }
 
-    public void setIcon(@NonNull ImageView imageView,
+    public void setIcon(@NonNull AppCompatImageView imageView,
                         @NonNull UPnPDevice device,
                         @Dimension int size) {
         if (!TextUtils.isEmpty(device.getIconUrl())) {
