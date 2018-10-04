@@ -39,6 +39,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 import static com.dgmltn.upnpbrowser.event.UPnPErrorEvent.ERROR_NULL_SOCKET;
+import static com.dgmltn.upnpbrowser.event.UPnPErrorEvent.ERROR_OPEN_FAILED;
 
 /**
  * Based on:
@@ -82,12 +83,14 @@ class UPnPDeviceFinder {
             mSock = new UPnPSocket(inetAddress);
         } catch (IOException e) {
             Log.w(TAG, "new UPnPSocket(): IOException: ", e);
+            EventBus.getDefault().post(new UPnPErrorEvent(ERROR_OPEN_FAILED, e.getMessage()));
         }
     }
 
     void observe() {
         if (mSock == null) {
-            EventBus.getDefault().post(new UPnPErrorEvent(ERROR_NULL_SOCKET));
+            EventBus.getDefault().post(new UPnPErrorEvent(ERROR_NULL_SOCKET, "null socket"));
+            return;
         }
 
         try {
