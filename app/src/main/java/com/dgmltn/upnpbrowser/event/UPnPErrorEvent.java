@@ -1,6 +1,6 @@
 package com.dgmltn.upnpbrowser.event;
 
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 public class UPnPErrorEvent {
 

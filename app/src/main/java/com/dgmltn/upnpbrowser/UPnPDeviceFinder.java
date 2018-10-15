@@ -16,7 +16,7 @@
 
 package com.dgmltn.upnpbrowser;
 
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import android.util.Log;
 
 import com.dgmltn.upnpbrowser.event.UPnPDeviceEvent;

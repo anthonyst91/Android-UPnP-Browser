@@ -50,11 +50,11 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    // Support RecyclerView
-    implementation "com.android.support:recyclerview-v7:$support_version"
+    // AppCompat
+    implementation "androidx.appcompat:appcompat:$ax_appcompat_version"
 
-    // Support RecyclerView
-    implementation "com.android.support:appcompat-v7:$support_version"
+    // RecyclerView
+    implementation "androidx.recyclerview:recyclerview:$ax_recyclerview_version"
 
     // EventBus -> https://github.com/greenrobot/EventBus
     implementation "org.greenrobot:eventbus:$eventbus_version"
