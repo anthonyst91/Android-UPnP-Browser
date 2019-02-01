@@ -41,6 +41,22 @@ android {
         }
     }
 
+    android.variantFilter { variant ->
+        def flavorName = variant.getFlavors().get(0).name
+        def isTypeMock = variant.buildType.name == 'mock'
+        def isTypeDebug = variant.buildType.name == 'debug'
+
+        // Exclude variants for phonesPremium
+        if (flavorName == 'phonesPremium' && isTypeDebug) variant.setIgnore(true)
+
+        // Exclude variants for phones
+        if (flavorName == 'phones' && isTypeDebug) variant.setIgnore(true)
+
+        // Exclude variants for phonesTrial
+        if (flavorName == 'phonesTrial' && isTypeMock) variant.setIgnore(true)
+        if (flavorName == 'phonesTrial' && isTypeDebug) variant.setIgnore(true)
+    }
+
     lintOptions {
         checkReleaseBuilds true
         abortOnError true
