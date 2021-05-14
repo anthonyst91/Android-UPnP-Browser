@@ -12,7 +12,6 @@ buildscript {
 
     repositories {
         google()
-        jcenter()
     }
 
     dependencies {
@@ -32,6 +31,5 @@ ext.versionCode = 1000
 allprojects {
     repositories {
         google()
-        jcenter()
     }
 }
